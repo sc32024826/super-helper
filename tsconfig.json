@@ -1,5 +1,5 @@
 {
-  "extends": "@vue/tsconfig/tsconfig.json",
+//   "extends": "@vue/tsconfig/tsconfig.json",
   "compilerOptions": {
     "sourceMap": true,
     "baseUrl": ".",
@@ -7,7 +7,16 @@
       "@/*": ["./src/*"]
     },
     "lib": ["esnext", "dom"],
-    "types": ["@dcloudio/types"]
+    "types": ["@dcloudio/types", "vite/client", "node"],
+    "module": "ESNext", // 使用 ES 模块语法
+    "target": "ESNext", // 编译目标为最新的 ECMAScript 版本
+    "moduleResolution": "Node", // 使用 Node.js 的模块解析策略
+    "jsx": "preserve", // 保留 JSX 代码，交给 Vue 或其他工具处理
+    "skipLibCheck": true, // 跳过对库文件的类型检查，加快编译速度
+    "forceConsistentCasingInFileNames": true, // 强制文件名大小写一致性
+    // 其他常用配置
+    "isolatedModules": true, // 确保每个文件都是一个独立的模块（Vite 要求）
+    "resolveJsonModule": true, // 支持导入 JSON 文件
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

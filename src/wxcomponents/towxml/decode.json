@@ -1,0 +1,10 @@
+{
+  "component": true,
+  "usingComponents": {
+    "decode": "./decode",
+    "latex": "./latex/latex",
+    "table": "./table/table",
+    "yuml": "./yuml/yuml",
+    "img": "./img/img"
+  }
+}
