@@ -1,31 +1,46 @@
 {
-    "pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
-        {
-            "path": "pages/index/index",
-            "style": {
-                "navigationBarTitleText": "自动登录"
-            }
-        },
-        {
-            "path": "pages/home/index",
-            "style": {
-                "navigationBarTitleText": "",
-                "usingComponents": {
-                    "towxml": "/wxcomponents/towxml/towxml"
-                }
-            }
-        },
-        {
-            "path": "pages/my/index",
-            "style": {
-                "navigationBarTitleText": "我的"
-            }
+  "pages": [
+    //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "自动登录"
+      }
+    },
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationBarTitleText": "",
+        "usingComponents": {
+          "towxml": "/wxcomponents/towxml/towxml"
         }
-    ],
-    "globalStyle": {
-        "navigationBarTextStyle": "black",
-        "navigationBarTitleText": "uni-app",
-        "navigationBarBackgroundColor": "#F8F8F8",
-        "backgroundColor": "#F8F8F8"
+      }
+    },
+    {
+      "path": "pages/my/index",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
     }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "uni-app",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8",
+    "usingComponents": {
+      "van-popup": "/wxcomponents/vant/popup/index",
+      "van-picker": "/wxcomponents/vant/picker/index",
+      "van-field": "/wxcomponents/vant/field/index",
+      "van-nav-bar": "/wxcomponents/vant/nav-bar/index",
+      "van-dialog": "/wxcomponents/vant/dialog/index",
+      "van-checkbox": "/wxcomponents/vant/checkbox/index"
+    }
+  },
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+    }
+  }
 }

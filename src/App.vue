@@ -11,5 +11,7 @@ onHide(() => {
 });
 </script>
 <style>
-
+.debug{
+  border: 1px solid red;
+}
 </style>
