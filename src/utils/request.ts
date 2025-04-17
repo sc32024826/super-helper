@@ -105,6 +105,8 @@ class HttpRequest {
             const result = this.responseInterceptor(res);
             resolve(result);
           } catch (error) {
+            console.log(error);
+
             this.errorHandler(error);
           }
         },

@@ -2,12 +2,12 @@
     <view class="login-container">
         <view class="login-form">
             <view class="form-title">用户登录</view>
-            <view class="input-group">
+            <!-- <view class="input-group">
                 <input type="number" v-model="formData.phone" placeholder="请输入手机号" maxlength="11" class="input-field" />
             </view>
             <view class="input-group">
                 <input type="password" v-model="formData.password" placeholder="请输入密码" class="input-field" />
-            </view>
+            </view> -->
             <button class="login-btn" @click="handleLogin">登录</button>
         </view>
     </view>
@@ -22,22 +22,31 @@ const formData = reactive({
 })
 
 const handleLogin = () => {
-    if (!formData.phone) {
-        uni.showToast({
-            title: '请输入手机号',
-            icon: 'none'
-        })
-        return
-    }
-    if (!formData.password) {
-        uni.showToast({
-            title: '请输入密码',
-            icon: 'none'
-        })
-        return
-    }
-    // TODO: 调用登录接口
-    console.log('登录信息：', formData)
+    console.log('登录信息')
+    uni.redirectTo({
+        url: '/pages/home/index',
+        fail: (err) => {
+            console.log('登录信息 ', err)
+            
+        }
+    })
+    // return
+    // if (!formData.phone) {
+    //     uni.showToast({
+    //         title: '请输入手机号',
+    //         icon: 'none'
+    //     })
+    //     return
+    // }
+    // if (!formData.password) {
+    //     uni.showToast({
+    //         title: '请输入密码',
+    //         icon: 'none'
+    //     })
+    //     return
+    // }
+    // // TODO: 调用登录接口
+    // console.log('登录信息：', formData)
 }
 
 onMounted(() => {
@@ -47,9 +56,7 @@ onMounted(() => {
         key: 'token',
         data: 'pat_Xbefq7nXVeRTtVmPtPm4APwvK6z2XCt3Jo6zSJfI1V5lWrif482DDxHBRvnxt1aP'
     })
-    uni.redirectTo({
-        url: '/pages/home/index',
-    })
+
 })
 </script>
 

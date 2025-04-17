@@ -36,7 +36,8 @@
                 </view> -->
 
                 <template v-if="!isVoiceMode">
-                    <input class="message-input" v-model="inputMessage" placeholder="请输入消息..." @confirm="sendMessage" />
+                    <input :adjust-position="false" :cursor-spacing="20" class="message-input" v-model="inputMessage"
+                        placeholder="请输入消息..." @confirm="sendMessage" />
                 </template>
                 <template v-else>
                     <view class="voice-input" :class="{ 'voice-input-pressing': isPressing }"
@@ -371,7 +372,7 @@ const initKeyboardListener = () => {
 
 onMounted(() => {
     getSystemInfo()
-    initRecorder()
+    // initRecorder()
     initKeyboardListener() // 初始化键盘监听
     // 可以在这里加载历史消息
     loadHistory()
