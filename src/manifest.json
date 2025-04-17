@@ -57,19 +57,14 @@
         "usingComponents": true,
         "plugins": {
             /* 使用微信同声传译插件 */
-            "WechatSI": {
-                "version": "latest",
-                "provider": "wx069ba97219f66d99"
-            },
+            // "WechatSI": {
+            //     "version": "latest",
+            //     "provider": "wx069ba97219f66d99"
+            // },
             // 腾讯云智能语音
-            // "QCloudAIVoice": {
-            //     "version": "2.3.8",
-            //     "provider": "wx3e17776051baf153"
-            // }
-        },
-        "permission": {
-            "scope.record": {
-                "desc": "需要使用录音功能进行语音输入"
+            "QCloudAIVoice": {
+                "version": "2.3.8",
+                "provider": "wx3e17776051baf153"
             }
         }
     },

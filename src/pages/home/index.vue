@@ -18,6 +18,7 @@
                     <towxml :nodes="strToMarkdown(typingContent)" />
                 </view>
                 <view class="typing-indicator">
+                    思考中
                     <view class="dot"></view>
                     <view class="dot"></view>
                     <view class="dot"></view>
@@ -30,21 +31,21 @@
         <!-- 输入框 -->
         <view class="input-area" :style="{ paddingBottom: safeAreaBottom + 'px' }">
             <view class="input-wrapper">
-                <view class="switch-button" @click="toggleInputMode">
+                <!-- <view class="switch-button" @click="toggleInputMode">
                     <text :class="['iconfont', isVoiceMode ? 'icon-jianpan' : 'icon-yuyin', 'switch-icon']"></text>
-                </view>
+                </view> -->
 
                 <template v-if="!isVoiceMode">
                     <input class="message-input" v-model="inputMessage" placeholder="请输入消息..." @confirm="sendMessage" />
                 </template>
                 <template v-else>
-                    <view class="voice-input" @touchstart="startRecording" @touchend="stopRecording"
-                        @touchcancel="cancelRecording">
+                    <view class="voice-input" :class="{ 'voice-input-pressing': isPressing }"
+                        @touchstart="startRecording" @touchend="stopRecording" @touchcancel="cancelRecording">
                         <text class="voice-text">{{ isRecording ? '松开 结束' : '按住 说话' }}</text>
                     </view>
                 </template>
 
-                <button class="send-button" @click="sendMessage"
+                <button class="send-button" @click="sendMessage" v-if="!isVoiceMode"
                     :disabled="isTyping || (isVoiceMode && isRecording)">发送</button>
             </view>
         </view>
@@ -55,8 +56,6 @@
 import { ref, onMounted, computed } from 'vue'
 import { marked } from 'marked'
 import { CozeController } from '@/api'
-
-// const towxml = inject<(str: string, type: "markdown" | "html", TowxmlOptions?) => string>('towxml')
 
 const towxml = require('../../wxcomponents/towxml/index.js');
 
@@ -82,10 +81,11 @@ const safeAreaBottom = ref(0)
 const isTyping = ref(false)
 const typingContent = ref('')
 const isRecording = ref(false)
-const recorderManager = ref<any>(null)
 const isVoiceMode = ref(false)
 const scrollTarget = ref('')
 const keyboardHeight = ref(0)
+const recordManager = ref<any>(null)
+const isPressing = ref(false)
 
 // 配置marked
 marked.setOptions({
@@ -135,7 +135,6 @@ const sendMessage = async () => {
     }
 }
 
-// 模拟AI响应
 const fetchAIResponse = async (message: string): Promise<string> => {
     return new Promise((resolve) => {
         let fullResponse = ''
@@ -223,7 +222,6 @@ const fetchAIResponse = async (message: string): Promise<string> => {
 
                                     if (answerData.content && answerData.type === "answer") {
                                         fullResponse += answerData.content
-                                        console.log('跟新打字机效果');
                                         // 更新打字效果
                                         typingContent.value = marked.parse(fullResponse) as string
                                     }
@@ -236,6 +234,7 @@ const fetchAIResponse = async (message: string): Promise<string> => {
                                 console.log('回答完毕');
                                 break;
                             default:
+                                console.log(eventType, text);
                                 break;
                         }
                         console.log(fullResponse);
@@ -264,95 +263,65 @@ const loadMoreMessages = () => {
 
 // 初始化录音管理器
 const initRecorder = () => {
-    recorderManager.value = uni.getRecorderManager()
+    const plugin = requirePlugin('WechatSI')
+    recordManager.value = plugin.getRecordRecognitionManager()
+    console.log('初始化 wechatSI');
 
-    recorderManager.value.onStart(() => {
-        console.log('录音开始')
-    })
+    recordManager.value.onRecognize = (res) => {
+        console.log('识别回调');
 
-    recorderManager.value.onStop((res: any) => {
-        console.log('录音结束', res)
-        // 将录音文件发送到语音识别服务
-        recognizeVoice(res.tempFilePath)
-    })
+        if (res.result) {
+            console.log('识别结果回调', res.result);
+            inputMessage.value = res.result
+        }
+    }
 
-    recorderManager.value.onError((res: any) => {
+    recordManager.value.onStop = (res) => {
+        console.log('录音结束', res);
+
+        if (res.result) {
+            console.log('识别结束回调', res.result);
+            inputMessage.value = res.result
+        }
+    }
+
+    recordManager.value.onError = (res) => {
         console.error('录音错误', res)
         uni.showToast({
             title: '录音失败',
             icon: 'none'
         })
-    })
+    }
 }
 
 // 开始录音
 const startRecording = () => {
+    console.log('开始录音');
+
     isRecording.value = true
-    recorderManager.value.start({
-        duration: 60000, // 最长录音时间，单位ms
-        sampleRate: 16000,
-        numberOfChannels: 1,
-        encodeBitRate: 48000,
-        format: 'mp3'
-    })
+    isPressing.value = true
+    recordManager.value.start({})
 }
 
 // 停止录音
 const stopRecording = () => {
+    console.log('停止录音', isRecording);
+
     if (isRecording.value) {
         isRecording.value = false
-        recorderManager.value.stop()
+        isPressing.value = false
+        recordManager.value.stop()
     }
 }
 
 // 取消录音
 const cancelRecording = () => {
+    console.log('取消录音');
+
     if (isRecording.value) {
         isRecording.value = false
-        recorderManager.value.stop()
-    }
-}
-
-// 语音识别
-const recognizeVoice = async (tempFilePath: string) => {
-    try {
-        // 使用微信插件的同声传译功能
-        const plugin = requirePlugin('WechatSI')
-        const manager = plugin.getRecordRecognitionManager()
-
-        // 设置识别结果回调
-        manager.onRecognize = (res) => {
-            if (res.result) {
-                console.log('识别结果回调', res.result);
-                inputMessage.value = res.result
-            }
-            console.log(res, '1');
-        }
-
-        // 设置识别结束回调
-        manager.onStop = (res) => {
-            if (res.result) {
-                console.log('设置识别结束回调');
-                inputMessage.value = res.result
-            }
-            console.log(res, '2');
-        }
-
-        // 开始识别
-        manager.start({
-            lang: 'zh_CN', // 设置语言为中文
-            duration: 60000, // 最长录音时间，单位ms
-            sampleRate: 16000,
-            numberOfChannels: 1,
-            encodeBitRate: 48000,
-            format: 'mp3'
-        })
-    } catch (error) {
-        console.error('语音识别失败:', error)
-        uni.showToast({
-            title: '语音识别失败',
-            icon: 'none'
-        })
+        isPressing.value = false
+        recordManager.value.stop()
     }
 }
 
@@ -390,7 +359,9 @@ const parseMarkdown = (content: string) => {
 // 监听键盘高度变化
 const initKeyboardListener = () => {
     uni.onKeyboardHeightChange((res) => {
-        keyboardHeight.value = res.height
+        console.log(res.height);
+
+        keyboardHeight.value = 0 //res.height
         // 键盘弹出时滚动到底部
         if (res.height > 0) {
             scrollToBottom()
@@ -447,6 +418,7 @@ onMounted(() => {
     margin-bottom: 20rpx;
     display: flex;
     flex-direction: column;
+    overflow: scroll;
 }
 
 .message-content {
@@ -521,13 +493,13 @@ onMounted(() => {
     border-top: 1rpx solid #eee;
     box-sizing: border-box;
     z-index: 100;
-    transform: translateY(0); // 添加默认位置
-    transition: transform 0.3s ease; // 添加过渡效果
+    transform: translateY(0);
+    transition: transform 0.3s ease;
 }
 
 // 当键盘弹出时，输入框区域会向上移动
 .input-area.keyboard-show {
-    transform: translateY(-var(--keyboard-height));
+    transform: translateY(calc(-var(--keyboard-height) + 20rpx));
 }
 
 .input-wrapper {
@@ -561,10 +533,19 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     margin-right: 20rpx;
+    transition: all 0.3s ease;
 
     .voice-text {
         font-size: 28rpx;
         color: #666;
+    }
+
+    &.voice-input-pressing {
+        background-color: #007AFF;
+
+        .voice-text {
+            color: white;
+        }
     }
 }
 
