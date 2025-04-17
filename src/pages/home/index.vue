@@ -56,7 +56,7 @@
         class="input-message-field"
       >
         <template #left-icon>
-          <view class="switch-button" @click="toggleInputMode">
+          <!-- <view class="switch-button" @click="toggleInputMode">
             <text
               :class="[
                 'iconfont',
@@ -64,7 +64,7 @@
                 'switch-icon',
               ]"
             ></text>
-          </view>
+          </view> -->
         </template>
         <template #button>
           <button
@@ -116,14 +116,13 @@ const isRecording = ref(false);
 const isVoiceMode = ref(false);
 const scrollTarget = ref("");
 const keyboardHeight = ref(0);
-const recordManager = ref<any>(null);
-const isPressing = ref(false);
+// const isPressing = ref(false);
 const fieldStyle = ref(
   "background-color: #efefef; border-radius: 48rpx; padding: 5px 10px !important;min-height: 105rpx; display: flex; align-items: center; font-size: 34rpx;"
 );
 const inputBottom = ref(20);
 const pixelRate = ref(1);
-const scrollTopHeight = ref(0);
+// const scrollTopHeight = ref(0);
 const initialFieldBottom = ref(0);
 
 // 配置marked
@@ -153,29 +152,32 @@ const initKeyboardListener = () => {
 // 移除不必要的输入框事件处理
 const onFieldFocus = () => {};
 const onFieldBlur = () => {};
-const onFieldChange = () => {};
+const onFieldChange = (e: any) => {
+  inputMessage.value = e.detail
+};
 
 // 优化滚动节流，增加延迟
-const setScrollTopHeight = useThrottle(function (val: number = 200000) {
-  if (scrollTopHeight.value >= val) {
-    scrollTopHeight.value += 1;
-    return;
-  }
-  scrollTopHeight.value += val;
-}, 200);
+// const setScrollTopHeight = useThrottle(function (val: number = 200000) {
+//   if (scrollTopHeight.value >= val) {
+//     scrollTopHeight.value += 1;
+//     return;
+//   }
+//   scrollTopHeight.value += val;
+// }, 200);
 
 // 发送消息
 const sendMessage = async () => {
+  console.log('send', inputMessage.value);
   if (!inputMessage.value.trim() || isTyping.value) return;
 
   // 添加用户消息
+  const userMessage = inputMessage.value.trim();
   messages.value.push({
     role: "user",
-    content: inputMessage.value,
+    content: userMessage,
   });
 
   // 清空输入框
-  const userMessage = inputMessage.value;
   inputMessage.value = "";
 
   // 滚动到底部
@@ -315,6 +317,7 @@ const fetchAIResponse = async (message: string): Promise<string> => {
 const scrollToBottom = () => {
   setTimeout(() => {
     scrollTop.value = 999999;
+    scrollTarget.value = "target";
   }, 100);
 };
 
