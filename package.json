@@ -16,6 +16,8 @@
     "@vant/weapp": "^1.11.7",
     "dompurify": "^3.2.4",
     "marked": "^15.0.7",
+    "pinia": "2",
+    "pinia-plugin-persistedstate": "^4.2.0",
     "sass": "^1.86.3",
     "towxml": "^3.0.6",
     "vue": "^3.4.21",

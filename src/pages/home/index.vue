@@ -38,8 +38,8 @@
       <!-- 占位  撑开高度 -->
       <view style="height: 400px" id="target"></view>
     </scroll-view>
-    <!-- 输入框 -->
-    <view class="input-area" :style="{ paddingBottom: inputBottom + 'px' }">
+    <!-- 输入框  :style="{ paddingBottom: inputBottom + 'px' }"-->
+    <view class="input-area">
       <van-field
         :placeholder="isVoiceMode ? '按住说话' : '发送消息'"
         placeholder-style="color: #8b8b8b; "
@@ -87,8 +87,11 @@ import { marked } from "marked";
 import { CozeController } from "@/api";
 import { onLoad } from "@dcloudio/uni-app";
 import { useThrottle } from "@/utils";
+import { userStore } from "@/store";
 
 const towxml = require("../../wxcomponents/towxml/index.js");
+
+const userStoreInstance = userStore();
 
 const strToMarkdown = computed(() => {
   return (str: string) => {
@@ -234,6 +237,7 @@ const fetchAIResponse = async (message: string): Promise<string> => {
         ],
         parameters: {
           input: message,
+          token: userStoreInstance.token
         },
         conversation_id: "7490816084174520332",
       },
@@ -363,21 +367,13 @@ const loadHistory = (before_id?: string) => {
         m.role === "user" ? m.content : (marked.parse(m.content) as string),
     }));
 
-    // 1. 获取第一条消息的高度
-    // const query = uni.createSelectorQuery().in(instance); // 绑定组件实例
-    // query.select('.message-item:first-child').boundingClientRect(res => {
-    //     console.log('===', res);
-    //     // firstItemHeight.value = res?.height || 0;
-    // }).exec();
-
     if (before_id) {
       // 加载更多消息时，将新消息插入到列表前面
       messages.value = [...newMessages, ...messages.value];
-      console.log("加载跟多: ", messages.value.length);
       const query = uni.createSelectorQuery().in(instance); // 绑定组件实例
       query
         .selectAll(".message-item")
-        .boundingClientRect((res) => {
+        .boundingClientRect((res:any) => {
           if (res && res.length > 0) {
             const insertedHeight = res
               .slice(0, newMessages.length)

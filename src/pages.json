@@ -37,6 +37,25 @@
       "van-checkbox": "/wxcomponents/vant/checkbox/index"
     }
   },
+  "tabBar": {
+    "backgroundColor": "#ffffff",
+    "color": "#7A7E83",
+    "selectedColor": "#3CC51F",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页",
+        "iconPath": "/static/images/tabbar/home.png",
+        "selectedIconPath": "/static/images/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/my/index",
+        "text": "我的",
+        "iconPath": "/static/images/tabbar/user.png",
+        "selectedIconPath": "/static/images/tabbar/user-active.png"
+      }
+    ]
+  },
   "easycom": {
     "autoscan": true,
     "custom": {
