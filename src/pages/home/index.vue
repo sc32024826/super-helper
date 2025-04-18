@@ -9,6 +9,7 @@
       :show-scrollbar="false"
       @scrolltoupper="loadMoreMessages"
       :style="{ height: scrollViewHeight + 'rpx' }"
+      refresher-threshold="80"
     >
       <view
         v-for="(message, index) in messages"
@@ -24,12 +25,11 @@
         </view>
       </view>
       <!-- 正在输入的消息 -->
-      <view v-if="isTyping" class="message-item ai-message">
+      <view v-if="isTyping" class="message-item ai-message debug">
         <view class="message-content markdown-content">
           <towxml :nodes="strToMarkdown(typingContent)" />
         </view>
         <view class="typing-indicator">
-          思考中
           <view class="dot"></view>
           <view class="dot"></view>
           <view class="dot"></view>
@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, getCurrentInstance } from "vue";
 import { marked } from "marked";
 import { CozeController } from "@/api";
 import { onLoad } from "@dcloudio/uni-app";
@@ -103,7 +103,10 @@ interface Message {
   role: "user" | "assistant";
   content: string;
 }
-const { safeAreaInsets, screenWidth, platform } = uni.getSystemInfoSync();
+
+const instance = getCurrentInstance(); // 获取组件实例
+
+const { safeAreaInsets, screenWidth } = uni.getWindowInfo();
 
 const messages = ref<Message[]>([]);
 const inputMessage = ref("");
@@ -124,6 +127,8 @@ const inputBottom = ref(20);
 const pixelRate = ref(1);
 // const scrollTopHeight = ref(0);
 const initialFieldBottom = ref(0);
+const first_id = ref("0"); // 用于记录消息列表头
+const has_more = ref(false); // 记录是否还有更多历史消息
 
 // 配置marked
 marked.setOptions({
@@ -139,12 +144,12 @@ const initKeyboardListener = () => {
       // 键盘弹出时，只使用键盘高度
       inputBottom.value = res.height + 10;
       scrollViewHeight.value =
-        uni.getSystemInfoSync().windowHeight - res.height - 120;
+        uni.getWindowInfo().windowHeight - res.height - 120;
       scrollToBottom();
     } else {
       // 键盘收起时，使用安全区高度
       inputBottom.value = initialFieldBottom.value;
-      scrollViewHeight.value = uni.getSystemInfoSync().windowHeight - 120;
+      scrollViewHeight.value = uni.getWindowInfo().windowHeight - 120;
     }
   });
 };
@@ -153,7 +158,7 @@ const initKeyboardListener = () => {
 const onFieldFocus = () => {};
 const onFieldBlur = () => {};
 const onFieldChange = (e: any) => {
-  inputMessage.value = e.detail
+  inputMessage.value = e.detail;
 };
 
 // 优化滚动节流，增加延迟
@@ -167,7 +172,7 @@ const onFieldChange = (e: any) => {
 
 // 发送消息
 const sendMessage = async () => {
-  console.log('send', inputMessage.value);
+  console.log("send", inputMessage.value);
   if (!inputMessage.value.trim() || isTyping.value) return;
 
   // 添加用户消息
@@ -324,7 +329,12 @@ const scrollToBottom = () => {
 // 加载更多消息
 const loadMoreMessages = () => {
   // 实现加载历史消息的逻辑
-  // console.log('加载更多消息')
+  if (has_more.value) {
+    console.log("加载更多消息");
+    loadHistory(first_id.value);
+  } else {
+    console.log("没有更多消息了");
+  }
 };
 
 // 切换输入模式
@@ -337,20 +347,57 @@ const toggleInputMode = () => {
     }
   }
 };
-const loadHistory = () => {
+const loadHistory = (before_id?: string) => {
+  uni.showLoading({
+    title: "消息列表加载中...",
+  });
   CozeController.conversation_list("7490816084174520332", {
-    limit: 10,
+    limit: 30,
+    before_id,
   }).then((res) => {
-    messages.value = res.data.reverse().map((m) => ({
+    first_id.value = res.last_id;
+    has_more.value = res.has_more;
+    const newMessages = res.data.reverse().map((m) => ({
       role: m.role,
       content:
         m.role === "user" ? m.content : (marked.parse(m.content) as string),
     }));
-    // scrollToBottom()
-    setTimeout(() => {
-      console.log("滚动到底部");
-      scrollTarget.value = "target";
-    }, 100);
+
+    // 1. 获取第一条消息的高度
+    // const query = uni.createSelectorQuery().in(instance); // 绑定组件实例
+    // query.select('.message-item:first-child').boundingClientRect(res => {
+    //     console.log('===', res);
+    //     // firstItemHeight.value = res?.height || 0;
+    // }).exec();
+
+    if (before_id) {
+      // 加载更多消息时，将新消息插入到列表前面
+      messages.value = [...newMessages, ...messages.value];
+      console.log("加载跟多: ", messages.value.length);
+      const query = uni.createSelectorQuery().in(instance); // 绑定组件实例
+      query
+        .selectAll(".message-item")
+        .boundingClientRect((res) => {
+          if (res && res.length > 0) {
+            const insertedHeight = res
+              .slice(0, newMessages.length)
+              .reduce((total, item) => total + (item.height || 0), 0);
+            console.log("插入的高度:", insertedHeight);
+
+            // 调整滚动位置以保持视图稳定
+            scrollTop.value += insertedHeight;
+          }
+        })
+        .exec();
+    } else {
+      // 首次加载时，直接设置消息列表
+      messages.value = newMessages;
+      setTimeout(() => {
+        console.log("滚动到底部");
+        scrollTarget.value = "target";
+      }, 100);
+    }
+    uni.hideLoading();
   });
 };
 
@@ -371,7 +418,7 @@ onLoad(() => {
     initialFieldBottom.value = 12;
   }
   inputBottom.value = initialFieldBottom.value;
-  scrollViewHeight.value = uni.getSystemInfoSync().windowHeight - 120;
+  scrollViewHeight.value = uni.getWindowInfo().windowHeight - 120;
 });
 </script>
 
@@ -568,6 +615,7 @@ onLoad(() => {
     opacity: 0.5;
   }
 }
+
 .input-message-field {
   width: 100%;
   height: 105rpx;
