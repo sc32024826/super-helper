@@ -1,0 +1,3 @@
+export const APPID = '7493051052225282100';
+export const WORKFLOWID = '7493062678941253667';
+export const COZE_TOKEN = 'pat_Xbefq7nXVeRTtVmPtPm4APwvK6z2XCt3Jo6zSJfI1V5lWrif482DDxHBRvnxt1aP'

@@ -10,4 +10,5 @@ export const userStore = defineStore("user", {
     getToken: (state) => state.token,
     getRealName: (state) => state.realName,
   },
+  unistorage: true
 });
