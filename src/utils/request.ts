@@ -1,3 +1,4 @@
+import { COZE_TOKEN } from "@/utils/config";
 // 基础配置
 const config = {
   baseURL: import.meta.env.VITE_BASE_URL, // 基础URL
@@ -25,19 +26,21 @@ class HttpRequest {
   // 请求拦截器
   private requestInterceptor(options: any) {
     // 添加token
-    const token = uni.getStorageSync("token");
+    // const token = uni.getStorageSync("token");
+    // console.log('token', token);
 
-    if (token) {
-      options.header = {
-        ...options.header,
-        Authorization: `Bearer ${token}`,
-      };
-    }
+    // if (token) {
+    options.header = {
+      "Content-Type": "application/json",
+      ...options.header,
+      Authorization: `Bearer ${COZE_TOKEN}`,
+    };
 
     // 添加基础URL
     if (!options.url.startsWith("http")) {
       options.url = this.config.baseURL + options.url;
     }
+    console.log("options", options);
 
     return options;
   }
@@ -92,7 +95,6 @@ class HttpRequest {
       ...options,
       timeout: options.timeout || this.config.timeout,
     };
-
     // 应用请求拦截器
     const interceptedOptions = this.requestInterceptor(requestOptions);
 

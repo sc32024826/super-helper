@@ -13,11 +13,12 @@ Component({
 	lifetimes: {
 		attached: function () {
 			const _ts = this;
+			const globalData = getApp().globalData;
 
 			config.events.forEach(item => {
 				_ts['_' + item] = function (...arg) {
-					if (global._events && typeof global._events[item] === 'function') {
-						global._events[item](...arg);
+					if (globalData._events && typeof globalData._events[item] === 'function') {
+						globalData._events[item](...arg);
 					}
 				};
 			});

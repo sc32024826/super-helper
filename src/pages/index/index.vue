@@ -17,6 +17,15 @@
 import { ref, onMounted, reactive } from "vue";
 import { GoldController } from "@/api";
 import { userStore } from "@/store";
+
+interface LoginResp {
+    data: {
+        adminToken: string;
+        realName: string;
+        img: string | null
+    }
+}
+
 const showLoginForm = ref(false)
 
 const formData = reactive({
@@ -53,12 +62,13 @@ const handleLogin = () => {
                     username: formData.phone,
                     password: formData.password,
                     bind: true,
-                }).then((resp) => {
-                    const { adminToken, realName } = resp.data;
+                }).then((resp: LoginResp) => {
+                    const { adminToken, realName, img } = resp.data;
 
                     userStoreInstance.token = adminToken;
                     userStoreInstance.realName = realName;
-                    // TODO: 将 code 和 formData 提交到后端进行绑定操作
+                    userStoreInstance.avatar = img
+                    userStoreInstance.phone = formData.phone;
                     uni.showToast({
                         title: "账号绑定成功",
                         icon: "success",

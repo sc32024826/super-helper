@@ -30,11 +30,12 @@ const parse2 = require('./parse2/index'),
 
     // 精简数据，并初始化相关事件等
     initObj = (obj,option)=>{
+        const globalData = getApp().globalData;
         const result = {
                 theme:option.theme || 'light',
                 _e:{}
             },
-            events = global._events = {},
+            events = globalData._events = {},
             base = option.base;
 
         // 主题保存到全局
